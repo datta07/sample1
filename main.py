@@ -8,6 +8,8 @@ from pyDes import *
 import base64
 import websocket
 import json
+import time
+import threading
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
@@ -18,55 +20,99 @@ class DowMusic:
 		self.dispatcher = self.updater.dispatcher
 		start_handler = CommandHandler('start', self.start)
 		self.dispatcher.add_handler(start_handler)
+		start_handler = CommandHandler('exit', self.exit)
+		self.dispatcher.add_handler(start_handler)
 		echo_handler = MessageHandler(Filters.text, self.echo)
 		self.dispatcher.add_handler(echo_handler)
 		self.current={}
 		self.updater.start_polling()
 
+	def set_firebase(self,path,data):
+		url1='https://guvi-41d93.firebaseio.com/telebot/'+path+'/.json'
+		if path=='':
+			url1='https://guvi-41d93.firebaseio.com/'
+		r = json.dumps(data)
+		to_database = json.loads(r)
+		requests.patch(url = url1 , json = to_database)
+
 	def start(self,update, context):
+		context.chat_data['stage']=0
 		details=update.effective_chat
-		context.bot.send_message(chat_id=update.effective_chat.id, text=":) Hello "+details['first_name']+" "+details['last_name']+"\n**welcome to music center bot**\n--------------------------------------\nEnter the song you want:-")
+		context.chat_data['name']=details['first_name']+" "+details['last_name']
+		context.bot.send_message(chat_id=update.effective_chat.id, text=":) Hello "+details['first_name']+" "+details['last_name']+"\n**welcome to music center bot**\n--------------------------------------\n       -By Garuda.Inc \n--------------------------------------\nEnter the song you want:-")
 
+	def exit(self,update, context):
+		context.bot.send_message(chat_id=update.effective_chat.id,text="now you can continue\nenter the song or movie:-")
+		try:
+			context.chat_data['stage']=0
+		except Exception:
+			pass
 
-	def echo1(self,update,context):
-		context.bot.send_audio(chat_id=update.effective_chat.id,caption='Thanks for downloading song',audio='https://aac.saavncdn.com/266/50db273e85cfcf527f23b3ef80aade87_96.mp4')
 
 	def echo(self,update, context):
 		if (context.chat_data=={}):
 			context.chat_data['stage']=0
-
 		if (context.chat_data['stage']!=0):
-			no=int(update.message.text)-1
+			context.chat_data['update']+=str(update.message.text)
+			try:
+				if (int(update.message.text) in context.chat_data['options']):
+					no=int(update.message.text)-1
+				else:
+					context.bot.send_message(chat_id=update.effective_chat.id, text="entered a wrong option... stoping")
+					context.bot.send_message(chat_id=update.effective_chat.id, text="enter the song or movie name")
+					context.chat_data['stage']=0
+			except Exception:
+				context.bot.send_message(chat_id=update.effective_chat.id, text="entered a wrong option... stoping")
+				context.bot.send_message(chat_id=update.effective_chat.id, text="enter the song or movie name")
+				context.chat_data['stage']=0
+
+			#no=int(update.message.text)-1
 			if (context.chat_data['stage']==1):
 				if (no==0):
 					if (context.chat_data['stage1'][2]==1):
 						matter,l=self.url_album_design(context.chat_data['stage1'][1],no)
-						context.bot.send_message(chat_id=update.effective_chat.id, text=matter)
+						context.bot.send_message(chat_id=update.effective_chat.id, text=matter+'\n/exit')
 						context.chat_data['stage']=2
 						context.chat_data['stage2']=[l]
+						context.chat_data['options']=list(range(1,len(l)+1))
 					else:
 						url=self.url_song_design(context.chat_data['stage1'][1][no])
-						context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song',audio=url)
+						threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
+						context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=url)
 
 				elif (no<context.chat_data['stage1'][0]):
 					matter,l=self.url_album_design(context.chat_data['stage1'][1],no)
-					context.bot.send_message(chat_id=update.effective_chat.id, text=matter)
+					context.bot.send_message(chat_id=update.effective_chat.id, text=matter+'\n/exit')
 					context.chat_data['stage']=2
 					context.chat_data['stage2']=[l]
+					context.chat_data['options']=list(range(1,len(l)+1))
 				else:
 					url=self.url_song_design(context.chat_data['stage1'][1][no])
-					context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song',audio=url)
+					context.bot.send_message(chat_id=update.effective_chat.id, text='please wait the song is loading...')
+					threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
+					context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=url)
 
 			elif (context.chat_data['stage']==2):
 				context.bot.send_message(chat_id=update.effective_chat.id, text='please wait the song is loading...')
-				context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song',audio=context.chat_data['stage2'][0][no])
+				threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
+				context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=context.chat_data['stage2'][0][no])
 				context.chat_data['stage']=0
 
 		else:
+			details=update.effective_chat
+			context.chat_data['name']=details['first_name']+" "+details['last_name']
 			l,matter,t,qr=self.sendList(update.message.text)
 			context.chat_data['stage']=1
 			context.chat_data['stage1']=[t,l,qr]
-			context.bot.send_message(chat_id=update.effective_chat.id, text=matter)
+			context.chat_data['options']=list(range(1,len(l)+1))
+			if (len(context.chat_data['options'])==0):
+				context.bot.send_message(chat_id=update.effective_chat.id, text="entered a wrong option... stoping")
+				context.bot.send_message(chat_id=update.effective_chat.id, text="enter the song or movie name")
+				context.chat_data['stage']=0
+			else:
+				context.chat_data['update']=update.message.text
+				matter+='\n/exit'
+				context.bot.send_message(chat_id=update.effective_chat.id, text=matter)
 
 
 
@@ -204,8 +250,5 @@ class DowMusic:
 		j=base64.b64decode(j.strip())
 		name1=name.decrypt(j, padmode=PAD_PKCS5).decode('utf-8')
 		return name1
-
-
-
 
 k=DowMusic()

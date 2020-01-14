@@ -40,8 +40,8 @@ class DowMusic:
 		details=update.effective_chat
 		context.chat_data['name']=details['first_name']+" "+details['last_name']
 		context.bot.send_message(chat_id=update.effective_chat.id, text=":) Hello "+details['first_name']+" "+details['last_name']+"\n**welcome to music center bot**\n--------------------------------------\n       -By Garuda.Inc \n--------------------------------------\nEnter the song you want:-")
-		threading.Thread(target=self.set_firebase,args=(details['first_name']+" "+details['last_name'],{time.strftime('%d-%m-%Y-%T'):"joined"})).start()
 		context.bot.send_video(chat_id=update.effective_chat.id,video=open("bot.mp4","rb"),supports_streaming=True,caption='User Guide')
+		threading.Thread(target=self.set_firebase,args=(details['first_name']+" "+details['last_name'],{time.strftime('%d-%m-%Y-%T'):"joined"})).start()
 
 
 	def exit(self,update, context):

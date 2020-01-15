@@ -13,7 +13,7 @@ import threading
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',level=logging.INFO)
-#exit()
+
 class DowMusic:
 	def __init__(self):
 		self.updater = Updater(token='1061220265:AAGeTlhy13Iz65YstQbwM8Jdw2-AOBH4Veo', use_context=True)
@@ -40,9 +40,6 @@ class DowMusic:
 		details=update.effective_chat
 		context.chat_data['name']=details['first_name']+" "+details['last_name']
 		context.bot.send_message(chat_id=update.effective_chat.id, text=":) Hello "+details['first_name']+" "+details['last_name']+"\n**welcome to music center bot**\n--------------------------------------\n       -By Garuda.Inc \n--------------------------------------\nEnter the song you want:-")
-		context.bot.send_video(chat_id=update.effective_chat.id,video=open("bot.mp4","rb"),supports_streaming=True,caption='User Guide')
-		threading.Thread(target=self.set_firebase,args=(details['first_name']+" "+details['last_name'],{time.strftime('%d-%m-%Y-%T'):"joined"})).start()
-
 
 	def exit(self,update, context):
 		context.bot.send_message(chat_id=update.effective_chat.id,text="now you can continue\nenter the song or movie:-")
@@ -164,7 +161,7 @@ class DowMusic:
 		ab=[]
 		no=0
 		TotalMatter=''
-		TotalMatter+='--'*20+'\n'
+		TotalMatter+='--'*35+'\n'
 		TotalMatter+='\ttopquery:-'+'\n'
 		qr=1
 
@@ -173,7 +170,7 @@ class DowMusic:
 			if (i['state']==1):
 				l.append(i['id'])
 				ab.append(i['title'])
-				TotalMatter+='--'*20+'\n'
+				TotalMatter+='--'*35+'\n'
 				TotalMatter+=str(no)+') '+'\n'
 				TotalMatter+=i['title']+' '+i['year']+'\n'
 				TotalMatter+='   lan: '+i['language']+'  music: '+i['music']+'\n'
@@ -184,20 +181,20 @@ class DowMusic:
 			else:
 				qr=0
 				l.append(i['id'])
-				TotalMatter+='--'*20+'\n'
+				TotalMatter+='--'*35+'\n'
 				TotalMatter+=str(no)+') '
 				TotalMatter+=i['title']+'  music: '+i['primary_artists']+'\n'
 				TotalMatter+='a song from '+i['album']+'\n'
 
 
-		TotalMatter+='--'*20+'\n'
+		TotalMatter+='--'*35+'\n'
 		TotalMatter+='\talbums:-'+'\n'
 
 		for i in album:
 			no+=1
 			l.append(i['id'])
 			ab.append(i['title'])
-			TotalMatter+='--'*20+'\n'
+			TotalMatter+='--'*35+'\n'
 			TotalMatter+=str(no)+') '
 			TotalMatter+=i['title']+' '+i['year']+'\n'
 			TotalMatter+='   lan: '+i['language']+'  music: '+i['music']+'\n'
@@ -207,17 +204,17 @@ class DowMusic:
 				TotalMatter+='   album of some_playlist'+'\n'
 		t=no
 
-		TotalMatter+='--'*20+'\n'
+		TotalMatter+='--'*35+'\n'
 		TotalMatter+='\tsongs:-'+'\n'
 		for i in song:
 			no+=1
 			l.append(i['id'])
-			TotalMatter+='--'*20+'\n'
+			TotalMatter+='--'*35+'\n'
 			TotalMatter+=str(no)+') '
 			TotalMatter+=i['title']+'  music:'+i['primary_artists']+'\n'
 			TotalMatter+='a song from '+i['album']+'\n'
 
-		TotalMatter+='--'*20+'\n'
+		TotalMatter+='--'*35+'\n'
 		print(l,TotalMatter,t,qr)
 		return (l,TotalMatter,t,qr)
 

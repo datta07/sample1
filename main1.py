@@ -58,10 +58,17 @@ class DowMusic:
 		except Exception:
 			pass
 
+	def send_song(self,url,update,context):
+		context.bot.send_message(chat_id=update.effective_chat.id,text='please wait the song is loading...')
+		threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
+		context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=url)
+		context.chat_data['stage']=0
+
 
 	def echo(self,update, context):
 		if (context.chat_data=={}):
 			context.chat_data['stage']=0
+
 		if (context.chat_data['stage']!=0):
 			context.chat_data['update']+=str(update.message.text)
 			try:
@@ -87,9 +94,7 @@ class DowMusic:
 						context.chat_data['options']=list(range(1,len(l)+1))
 					else:
 						url=self.url_song_design(context.chat_data['stage1'][1][no])
-						context.bot.send_message(chat_id=update.effective_chat.id,text='please wait the song is loading...')
-						threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
-						context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=url)
+						self.send_song(url,update,context)
 
 				elif (no<context.chat_data['stage1'][0]):
 					matter,l=self.url_album_design(context.chat_data['stage1'][1],no)
@@ -99,15 +104,13 @@ class DowMusic:
 					context.chat_data['options']=list(range(1,len(l)+1))
 				else:
 					url=self.url_song_design(context.chat_data['stage1'][1][no])
-					context.bot.send_message(chat_id=update.effective_chat.id, text='please wait the song is loading...')
-					threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
-					context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=url)
+					self.send_song(url,update,context)
 
 			elif (context.chat_data['stage']==2):
-				context.bot.send_message(chat_id=update.effective_chat.id, text='please wait the song is loading...')
-				threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
-				context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=context.chat_data['stage2'][0][no])
-				context.chat_data['stage']=0
+				url=context.chat_data['stage2'][0][no]
+				self.send_song(url,update,context)
+
+				
 
 		else:
 			details=update.effective_chat

@@ -41,17 +41,14 @@ class DowMusic:
 	def start(self,update, context):
 		context.chat_data['stage']=0
 		details=update.effective_chat
-		name=''
-		try:
-			name=details['first_name']+" "
-			name+=details['last_name']
-		except Exception:
-			pass
+		name=self.getUserName(update)
 		context.bot.send_message(chat_id=update.effective_chat.id, text=":) Hello "+name+"\n**welcome to music center bot**\n--------------------------------------\n       -By Garuda.Inc \n--------------------------------------\nEnter the song you want:-")
 		context.bot.send_video(chat_id=update.effective_chat.id,video=open('bot.mp4','rb'),supports_streaming=True,caption='user guide')
 		self.set_firebase(name,{time.strftime("%d-%m-%Y-%T"):"started"})
 
 	def exit(self,update, context):
+		name=self.getUserName(update)
+		print(time.strftime('%D-%T'),'-',name,'-','exited')
 		context.bot.send_message(chat_id=update.effective_chat.id,text="now you can continue\nenter the song or movie:-")
 		try:
 			context.chat_data['stage']=0
@@ -59,13 +56,26 @@ class DowMusic:
 			pass
 
 	def send_song(self,url,update,context):
+		name=self.getUserName(update)
+		print(time.strftime('%D-%T'),'-',name,'-','song downloaded')
 		context.bot.send_message(chat_id=update.effective_chat.id,text='please wait the song is loading...')
 		threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
 		context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=url)
 		context.chat_data['stage']=0
 
+	def getUserName(self,update):
+		name=''
+		try:
+			details=update.effective_chat
+			name=details['first_name']+" "
+			name+=details['last_name']
+		except Exception:
+			pass
+		return name
 
 	def echo(self,update, context):
+		name=self.getUserName(update)
+		print(time.strftime('%D-%T'),'-',name,'-',update.message.text)
 		if (context.chat_data=={}):
 			context.chat_data['stage']=0
 
@@ -113,13 +123,7 @@ class DowMusic:
 				
 
 		else:
-			details=update.effective_chat
-			context.chat_data['name']=''
-			try:
-				context.chat_data['name']=details['first_name']+" "
-				context.chat_data['name']+=details['last_name']
-			except Exception:
-				pass
+			context.chat_data['name']=name
 			l,matter,t,qr=self.sendList(update.message.text)
 			context.chat_data['stage']=1
 			context.chat_data['stage1']=[t,l,qr]
@@ -234,7 +238,6 @@ class DowMusic:
 			TotalMatter+='a song from '+i['album']+'\n'
 
 		TotalMatter+='--'*20+'\n'
-		print(l,TotalMatter,t,qr)
 		return (l,TotalMatter,t,qr)
 
 	def url_album_design(self,l,no):

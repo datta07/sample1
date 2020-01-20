@@ -38,18 +38,26 @@ class DowMusic:
 		to_database = json.loads(r)
 		requests.patch(url = url1 , json = to_database)
 
+	def note(self,matter):
+		print(matter)
+		with open('logs.txt','a') as f:
+			f.write(matter+'\n')
+
 	def start(self,update, context):
 		context.chat_data['stage']=0
 		details=update.effective_chat
 		name=self.getUserName(update)
-		context.bot.send_message(chat_id=update.effective_chat.id, text=":) Hello "+name+"\n**welcome to music center bot**\n--------------------------------------\n       -By Garuda.Inc \n--------------------------------------\nEnter the song you want:-")
-		context.bot.send_video(chat_id=update.effective_chat.id,video=open('bot.mp4','rb'),supports_streaming=True,caption='user guide')
+		self.note(time.strftime('%D-%T')+' - '+name+' - '+' Started')
+		context.bot.send_message(chat_id=update.effective_chat.id, text='-'*26+"\n🧞‍♂️@garudadevbot🧞‍♂️ \n"+'-'*26+"\n  🎉Welcomes You  \n"+'-'*26+'\n    Dear '+name+', Enjoy UNLIMTED HIGH QUALITY SONGS DOWNLOAD on this BOT.  User Guide is posted below 👇')
+		context.bot.send_video(chat_id=update.effective_chat.id,video='https://drive.google.com/uc?export=download&id=1-rUQAZ_WjrL9dXYM3b5fd4valmXM0Oys',supports_streaming=True,caption='📌User Guide')
+		context.bot.send_message(chat_id=update.effective_chat.id, text='👋\n Enter the Song or Movie you Want:- 🧜‍♂️')
 		self.set_firebase(name,{time.strftime("%d-%m-%Y-%T"):"started"})
 
 	def exit(self,update, context):
 		name=self.getUserName(update)
-		print(time.strftime('%D-%T'),'-',name,'-','exited')
-		context.bot.send_message(chat_id=update.effective_chat.id,text="now you can continue\nenter the song or movie:-")
+		self.note(time.strftime('%D-%T')+' - '+name+' - '+' Exited')
+		context.bot.send_message(chat_id=update.effective_chat.id,text="🙅‍♂️ Canceled present query")
+		context.bot.send_message(chat_id=update.effective_chat.id,text='👋\n Enter another Movie name or Song name:- 🧜‍♂️')
 		try:
 			context.chat_data['stage']=0
 		except Exception:
@@ -57,11 +65,12 @@ class DowMusic:
 
 	def send_song(self,url,update,context):
 		name=self.getUserName(update)
-		print(time.strftime('%D-%T'),'-',name,'-','song downloaded')
-		context.bot.send_message(chat_id=update.effective_chat.id,text='please wait the song is loading...')
-		threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
-		context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='Thanks for downloading song using Garuda\nfor any details contact :-\nakula.gurudatta@gmail.com',audio=url)
+		self.note(time.strftime('%D-%T')+' - '+name+' - '+'song downloaded')
+		context.bot.send_message(chat_id=update.effective_chat.id,text='Please wait the song is loading... 🧨')
 		context.chat_data['stage']=0
+		threading.Thread(target=self.set_firebase,args=(context.chat_data['name'],{time.strftime('%d-%m-%Y-%T'):context.chat_data['update']})).start()
+		context.bot.send_audio(chat_id=update.effective_chat.id,title='garuda',caption='🙏Thanks for downloading song using GARUDA🙏\nFor any details contact :-\nakula.gurudatta@gmail.com',audio=url)
+		context.bot.send_message(chat_id=update.effective_chat.id,text='👋\n Enter another Movie name or Song name:- 🧜‍♂️')
 
 	def getUserName(self,update):
 		name=''
@@ -75,7 +84,7 @@ class DowMusic:
 
 	def echo(self,update, context):
 		name=self.getUserName(update)
-		print(time.strftime('%D-%T'),'-',name,'-',update.message.text)
+		self.note(time.strftime('%D-%T')+' - '+name+' - '+update.message.text)
 		if (context.chat_data=={}):
 			context.chat_data['stage']=0
 
@@ -85,12 +94,12 @@ class DowMusic:
 				if (int(update.message.text) in context.chat_data['options']):
 					no=int(update.message.text)-1
 				else:
-					context.bot.send_message(chat_id=update.effective_chat.id, text="entered a wrong option... stoping")
-					context.bot.send_message(chat_id=update.effective_chat.id, text="enter the song or movie name")
+					context.bot.send_message(chat_id=update.effective_chat.id, text="🙅‍♂️ Options must be b/w 1 and "+str(len(context.chat_data['options'])))
+					context.bot.send_message(chat_id=update.effective_chat.id,text='👋\n TRY again Enter Movie name or Song name:- 🧜‍♂️')
 					context.chat_data['stage']=0
 			except Exception:
-				context.bot.send_message(chat_id=update.effective_chat.id, text="entered a wrong option... stoping")
-				context.bot.send_message(chat_id=update.effective_chat.id, text="enter the song or movie name")
+				context.bot.send_message(chat_id=update.effective_chat.id, text="🙅‍♂️ Entered Wrong... Must be a NUMBER,Check tutorial once again...")
+				context.bot.send_message(chat_id=update.effective_chat.id,text='👋\n TRY again Enter Movie name or Song name:- 🧜‍♂️')
 				context.chat_data['stage']=0
 
 			#no=int(update.message.text)-1
@@ -98,7 +107,9 @@ class DowMusic:
 				if (no==0):
 					if (context.chat_data['stage1'][2]==1):
 						matter,l=self.url_album_design(context.chat_data['stage1'][1],no)
-						context.bot.send_message(chat_id=update.effective_chat.id, text=matter+'\n/exit')
+						matter+='\n 👉 Select an Option b/w 1 and '+str(len(l))
+						matter+='  (or)   /exit'
+						context.bot.send_message(chat_id=update.effective_chat.id, text=matter)
 						context.chat_data['stage']=2
 						context.chat_data['stage2']=[l]
 						context.chat_data['options']=list(range(1,len(l)+1))
@@ -108,7 +119,9 @@ class DowMusic:
 
 				elif (no<context.chat_data['stage1'][0]):
 					matter,l=self.url_album_design(context.chat_data['stage1'][1],no)
-					context.bot.send_message(chat_id=update.effective_chat.id, text=matter+'\n/exit')
+					matter+='\n 👉 Select an Option b/w 1 and '+str(len(l))
+					matter+='  (or)   /exit'
+					context.bot.send_message(chat_id=update.effective_chat.id, text=matter)
 					context.chat_data['stage']=2
 					context.chat_data['stage2']=[l]
 					context.chat_data['options']=list(range(1,len(l)+1))
@@ -129,12 +142,13 @@ class DowMusic:
 			context.chat_data['stage1']=[t,l,qr]
 			context.chat_data['options']=list(range(1,len(l)+1))
 			if (len(context.chat_data['options'])==0):
-				context.bot.send_message(chat_id=update.effective_chat.id, text="entered a wrong option... stoping")
-				context.bot.send_message(chat_id=update.effective_chat.id, text="enter the song or movie name")
+				context.bot.send_message(chat_id=update.effective_chat.id, text="😒\n  NO RESULTS FOUND..,ENTER CORRECT SPEELING..")
+				context.bot.send_message(chat_id=update.effective_chat.id,text='👋\n TRY again Enter Movie name or Song name:- 🧜‍♂️')
 				context.chat_data['stage']=0
 			else:
 				context.chat_data['update']=update.message.text
-				matter+='\n/exit'
+				matter+='\n 👉 Select an Option b/w 1 and '+str(len(l))
+				matter+='  (or)   /exit'
 				context.bot.send_message(chat_id=update.effective_chat.id, text=matter)
 
 
@@ -184,7 +198,7 @@ class DowMusic:
 		ab=[]
 		no=0
 		TotalMatter=''
-		TotalMatter+='--'*20+'\n'
+		TotalMatter+='--'*26+'\n'
 		TotalMatter+='\ttopquery:-'+'\n'
 		qr=1
 
@@ -193,7 +207,7 @@ class DowMusic:
 			if (i['state']==1):
 				l.append(i['id'])
 				ab.append(i['title'])
-				TotalMatter+='--'*20+'\n'
+				TotalMatter+='--'*26+'\n'
 				TotalMatter+=str(no)+') '+'\n'
 				TotalMatter+=i['title']+' '+i['year']+'\n'
 				TotalMatter+='   lan: '+i['language']+'  music: '+i['music']+'\n'
@@ -204,20 +218,20 @@ class DowMusic:
 			else:
 				qr=0
 				l.append(i['id'])
-				TotalMatter+='--'*20+'\n'
+				TotalMatter+='--'*26+'\n'
 				TotalMatter+=str(no)+') '
 				TotalMatter+=i['title']+'  music: '+i['primary_artists']+'\n'
 				TotalMatter+='a song from '+i['album']+'\n'
 
 
-		TotalMatter+='--'*20+'\n'
+		TotalMatter+='--'*26+'\n'
 		TotalMatter+='\talbums:-'+'\n'
 
 		for i in album:
 			no+=1
 			l.append(i['id'])
 			ab.append(i['title'])
-			TotalMatter+='--'*20+'\n'
+			TotalMatter+='--'*26+'\n'
 			TotalMatter+=str(no)+') '
 			TotalMatter+=i['title']+' '+i['year']+'\n'
 			TotalMatter+='   lan: '+i['language']+'  music: '+i['music']+'\n'
@@ -227,17 +241,17 @@ class DowMusic:
 				TotalMatter+='   album of some_playlist'+'\n'
 		t=no
 
-		TotalMatter+='--'*20+'\n'
+		TotalMatter+='--'*26+'\n'
 		TotalMatter+='\tsongs:-'+'\n'
 		for i in song:
 			no+=1
 			l.append(i['id'])
-			TotalMatter+='--'*20+'\n'
+			TotalMatter+='--'*26+'\n'
 			TotalMatter+=str(no)+') '
 			TotalMatter+=i['title']+'  music:'+i['primary_artists']+'\n'
 			TotalMatter+='a song from '+i['album']+'\n'
 
-		TotalMatter+='--'*20+'\n'
+		TotalMatter+='--'*26+'\n'
 		return (l,TotalMatter,t,qr)
 
 	def url_album_design(self,l,no):
